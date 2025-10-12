@@ -79,3 +79,12 @@ curl -X POST http://127.0.0.1:8000/predict \
  -H "Content-Type: application/json" \
  -d '{"data":[{"revenue":120,"active_days":12,"tenure_days":180,"contract_type":"Month-to-month"}]}'
 ```
+
+
+<!-- METRICS_START -->
+## Metrics (Telco)
+
+| ROC-AUC | PR-AUC | LogLoss | Brier | Lift@10% | Threshold@10% |
+|:------:|:------:|:-------:|:-----:|:--------:|:-------------:|
+| 0.8470 | 0.6468 | 0.4071 | 0.1332 | 2.987 | 0.679 |
+<!-- METRICS_END -->
