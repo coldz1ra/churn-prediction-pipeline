@@ -1,0 +1,31 @@
+data:
+  train_path: data/train.csv
+  target: target_churn
+  id_col: customer_id
+  valid_size: 0.2
+  random_state: 42
+
+model:
+  type: "logreg"   # "xgb" или "lgbm"
+  params:
+    C: 1.0
+    class_weight: "balanced"
+    max_iter: 2000
+
+cv:
+  folds: 5
+  shuffle: true
+  random_state: 42
+
+calibration:
+  method: "isotonic"   # "sigmoid" или null
+
+thresholding:
+  k_fraction: 0.1      # доля клиентов для контакта (например, 10% самых рискованных)
+  budget: null         # или абсолютный бюджет контактов
+  cps: 2.0             # cost per save, денежная метрика для примера
+
+ltv: 100.0
+
+plots:
+  save_dir: reports/figures

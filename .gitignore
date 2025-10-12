@@ -1,0 +1,23 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+.venv/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Data
+data/*
+!data/.gitkeep
+
+# Reports and artifacts
+reports/*
+!reports/.gitkeep
+reports/figures/*
+!reports/figures/.gitkeep
+
+# OS
+.DS_Store
