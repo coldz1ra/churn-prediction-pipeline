@@ -8,12 +8,7 @@ import joblib
 from src.features import basic_features
 
 def align_columns(X: pd.DataFrame, cols: list[str]) -> pd.DataFrame:
-    # Add missing
-    for c in cols:
-        if c not in X.columns:
-            X[c] = 0
-    # Drop extra
-    return X[cols]
+    return X.reindex(columns=cols, fill_value=0)
 
 def main(input_path: str, output_path: str, cfg_path: str):
     with open(cfg_path, "r", encoding="utf-8") as f:

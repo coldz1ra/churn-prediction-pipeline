@@ -8,6 +8,7 @@ def main(out_path="data/train.csv"):
     df["target_churn"] = (df["Churn"].astype(str).str.strip().str.lower()=="yes").astype(int)
     if "customerID" not in df.columns:
         df["customerID"] = [f"c{i}" for i in range(len(df))]
+    df = df.drop(columns=["Churn"], errors="ignore")
     df.to_csv(out_path, index=False)
     print(f"Saved {out_path}")
 if __name__ == "__main__":

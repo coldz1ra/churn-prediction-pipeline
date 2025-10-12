@@ -10,6 +10,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import roc_auc_score
 from imblearn.over_sampling import RandomOverSampler
 import joblib
+import lightgbm as lgb
 
 from src.features import basic_features
 from src.utils import ensure_binary_series
@@ -38,7 +39,7 @@ def fit_with_optional_early_stopping(model, mtype: str, X_tr, y_tr, X_val, y_val
     if mtype == "xgb":
         model.fit(X_tr, y_tr, eval_set=[(X_val, y_val)], verbose=False, early_stopping_rounds=100)
     elif mtype == "lgbm":
-        model.fit(X_tr, y_tr, eval_set=[(X_val, y_val)], verbose=False, callbacks=[])
+        model.fit(X_tr, y_tr, eval_set=[(X_val, y_val)], callbacks=[lgb.early_stopping(100)])
     else:
         model.fit(X_tr, y_tr)
     return model
@@ -50,7 +51,7 @@ def main(cfg_path: str):
     df = pd.read_csv(cfg["data"]["train_path"])
     y = ensure_binary_series(df[cfg["data"]["target"]])
     id_col = cfg["data"]["id_col"]
-    X_raw = df.drop(columns=[cfg["data"]["target"], id_col], errors="ignore")
+    X_raw = df.drop(columns=[cfg["data"]["target"], id_col, "Churn"], errors="ignore")
     X = basic_features(X_raw)
 
     X_train, X_val, y_train, y_val = train_test_split(
@@ -69,14 +70,14 @@ def main(cfg_path: str):
     if calib and mtype in TREE_TYPES:
         # Fit tree with early stopping, then calibrate with prefit (no refit)
         model_prefit = fit_with_optional_early_stopping(model, mtype, X_tr, y_tr, X_val, y_val)
-        cal = CalibratedClassifierCV(base_estimator=model_prefit, method=calib, cv="prefit")
+        cal = CalibratedClassifierCV(estimator=model_prefit, method=calib, cv="prefit")
         cal.fit(X_val, y_val)
         model = cal
     else:
         # Fit with/without early stopping; if calib for linear, wrap CV=3
         model = fit_with_optional_early_stopping(model, mtype, X_tr, y_tr, X_val, y_val)
         if calib and mtype not in TREE_TYPES:
-            model = CalibratedClassifierCV(base_estimator=model, method=calib, cv=3).fit(X_tr, y_tr)
+            model = CalibratedClassifierCV(estimator=model, method=calib, cv=3).fit(X_tr, y_tr)
 
     proba = model.predict_proba(X_val)[:, 1]
     auc = roc_auc_score(y_val, proba)

@@ -11,16 +11,16 @@ def _try_get_tree_feature_importance(model):
         if hasattr(model, "feature_importances_"):
             return model.feature_importances_
         # Calibrated models
-        if hasattr(model, "base_estimator") and hasattr(model.base_estimator, "feature_importances_"):
-            return model.base_estimator.feature_importances_
+        if hasattr(model, "estimator") or hasattr(model, "base_estimator") and hasattr(getattr(model, "estimator", getattr(model, "base_estimator", model)), "feature_importances_"):
+            return getattr(model, "estimator", getattr(model, "base_estimator", model)).feature_importances_
         # XGB booster
         if hasattr(model, "get_booster"):
             booster = model.get_booster()
             score_dict = booster.get_score(importance_type="gain")
             # Return aligned later in calling code
             return score_dict
-        if hasattr(model, "base_estimator") and hasattr(model.base_estimator, "get_booster"):
-            booster = model.base_estimator.get_booster()
+        if hasattr(model, "estimator") or hasattr(model, "base_estimator") and hasattr(getattr(model, "estimator", getattr(model, "base_estimator", model)), "get_booster"):
+            booster = getattr(model, "estimator", getattr(model, "base_estimator", model)).get_booster()
             score_dict = booster.get_score(importance_type="gain")
             return score_dict
     except Exception:
@@ -86,13 +86,13 @@ def main(cfg_path: str):
     # Try to compute SHAP top-10 if possible (optional)
     shap_top = None
     try:
-        import shap, joblib, json
+        import shap, joblib
         import numpy as np
         model = joblib.load("artifacts/model.joblib")
         X_val = val_df.drop(columns=["y_true","y_proba"]) if val_df is not None else None
         base_est = model
-        if hasattr(model, "base_estimator"):
-            base_est = model.base_estimator
+        if hasattr(model, "estimator") or hasattr(model, "base_estimator"):
+            base_est = getattr(model, "estimator", getattr(model, "base_estimator", model))
         if X_val is not None and ("LGBM" in type(base_est).__name__ or "XGB" in type(base_est).__name__):
             explainer = shap.TreeExplainer(base_est)
             vals = explainer.shap_values(X_val)
