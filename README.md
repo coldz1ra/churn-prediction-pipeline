@@ -1,3 +1,4 @@
+![CI](https://github.com/coldz1ra/churn-prediction-pipeline/actions/workflows/ci.yml/badge.svg)
 # Customer Churn Prediction
 
 **Resume-grade** end-to-end ML pipeline to predict customer churn probability and optimize retention actions under a budget.
