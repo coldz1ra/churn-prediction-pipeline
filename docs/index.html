@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Customer Churn Prediction — Showcase</title>
+  <meta name="description" content="Production-style churn prediction pipeline: data → training → calibrated metrics → business lift & profit curves → FastAPI." />
+  <meta property="og:title" content="Churn Prediction — Showcase" />
+  <meta property="og:description" content="Lift & profit-driven churn model with CI/CD and report figures." />
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-50 text-gray-900">
+  <header class="bg-white shadow">
+    <div class="mx-auto max-w-6xl px-4 py-6 flex items-center justify-between">
+      <h1 class="text-2xl font-semibold">Customer Churn — Showcase</h1>
+      <div class="space-x-3 text-sm">
+        <a class="underline" href="https://github.com/coldz1ra/churn-prediction-pipeline">GitHub</a>
+        <a class="underline" href="./report.md">Full Report (md)</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="mx-auto max-w-6xl px-4 py-8 space-y-10">
+    <section class="bg-white p-6 rounded-2xl shadow">
+      <h2 class="text-xl font-semibold mb-2">Overview</h2>
+      <p class="text-sm text-gray-700">
+        End-to-end pipeline: public Telco dataset → feature preprocessing via <code>ColumnTransformer</code> →
+        model training (LogReg / LightGBM / XGBoost) → calibration → metrics & business KPIs (Lift@k, profit) →
+        FastAPI for batch scoring. CI validates style/tests; scheduled run can refresh figures.
+      </p>
+    </section>
+
+    <section class="bg-white p-6 rounded-2xl shadow">
+      <h2 class="text-xl font-semibold mb-4">Metrics (last run)</h2>
+      <div id="metrics" class="overflow-x-auto text-sm"></div>
+      <script>
+        fetch('./metrics.html').then(r => r.text()).then(h => { document.getElementById('metrics').innerHTML = h; });
+      </script>
+    </section>
+
+    <section class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div class="bg-white p-6 rounded-2xl shadow">
+        <h3 class="font-medium mb-2">ROC Curve</h3>
+        <img src="./figures/roc_curve.png" alt="ROC" class="rounded">
+      </div>
+      <div class="bg-white p-6 rounded-2xl shadow">
+        <h3 class="font-medium mb-2">PR Curve</h3>
+        <img src="./figures/pr_curve.png" alt="PR" class="rounded">
+      </div>
+      <div class="bg-white p-6 rounded-2xl shadow">
+        <h3 class="font-medium mb-2">Calibration</h3>
+        <img src="./figures/calibration_curve.png" alt="Calibration" class="rounded">
+      </div>
+      <div class="bg-white p-6 rounded-2xl shadow">
+        <h3 class="font-medium mb-2">Lift Curve</h3>
+        <img src="./figures/lift_curve.png" alt="Lift" class="rounded">
+      </div>
+      <div class="bg-white p-6 rounded-2xl shadow md:col-span-2">
+        <h3 class="font-medium mb-2">Profit (proxy)</h3>
+        <img src="./figures/profit_curve.png" alt="Profit" class="rounded">
+      </div>
+    </section>
+
+    <section class="bg-white p-6 rounded-2xl shadow">
+      <h2 class="text-xl font-semibold mb-2">API Quickstart</h2>
+      <pre class="bg-gray-100 p-3 rounded text-xs overflow-x-auto">uvicorn src.app:app --host 0.0.0.0 --port 8000
+curl -X POST http://127.0.0.1:8000/predict \
+ -H "Content-Type: application/json" \
+ -d '{"data":[{"tenure":12,"MonthlyCharges":70.5,"Contract":"Month-to-month","PaperlessBilling":"Yes","PaymentMethod":"Electronic check"}]}'</pre>
+      <p class="text-sm text-gray-700 mt-2">Interactive docs: <code>/docs</code> when API is running.</p>
+    </section>
+  </main>
+
+  <footer class="text-center text-xs text-gray-500 py-8">
+    Built with scikit-learn pipelines, calibrated probabilities, and CI/CD.
+  </footer>
+</body>
+</html>
