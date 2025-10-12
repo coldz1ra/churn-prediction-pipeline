@@ -5,16 +5,16 @@ import json
 from pathlib import Path
 
 import joblib
-import lightgbm as lgb
 import pandas as pd
 import yaml
 from imblearn.over_sampling import RandomOverSampler
 from sklearn.calibration import CalibratedClassifierCV
 from sklearn.metrics import roc_auc_score
 from sklearn.model_selection import train_test_split
+from sklearn.pipeline import Pipeline
 
-from src.features import basic_features
 from src.plots import plot_lift, plot_pr, plot_roc
+from src.preprocess import build_preprocess
 from src.utils import ensure_binary_series
 
 TREE_TYPES = {"xgb", "lgbm"}
@@ -42,10 +42,23 @@ def build_model(cfg):
 
 
 def fit_with_optional_early_stopping(model, mtype: str, X_tr, y_tr, X_val, y_val):
+    # If model is a sklearn Pipeline, DO NOT pass raw eval_set (it won't be transformed).
+    is_pipe = hasattr(model, "named_steps")
+    if is_pipe:
+        model.fit(X_tr, y_tr)
+        return model
+    # Plain estimators (no Pipeline): we can safely use early stopping
     if mtype == "xgb":
         model.fit(X_tr, y_tr, eval_set=[(X_val, y_val)], verbose=False, early_stopping_rounds=100)
     elif mtype == "lgbm":
-        model.fit(X_tr, y_tr, eval_set=[(X_val, y_val)], callbacks=[lgb.early_stopping(100)])
+        import lightgbm as lgb
+
+        model.fit(
+            X_tr,
+            y_tr,
+            eval_set=[(X_val, y_val)],
+            callbacks=[lgb.early_stopping(100), lgb.log_evaluation(-1)],
+        )
     else:
         model.fit(X_tr, y_tr)
     return model
@@ -59,7 +72,7 @@ def main(cfg_path: str):
     y = ensure_binary_series(df[cfg["data"]["target"]])
     id_col = cfg["data"]["id_col"]
     X_raw = df.drop(columns=[cfg["data"]["target"], id_col, "Churn"], errors="ignore")
-    X = basic_features(X_raw)
+    X = X_raw
 
     X_train, X_val, y_train, y_val = train_test_split(
         X,
@@ -73,7 +86,15 @@ def main(cfg_path: str):
     X_tr, y_tr = ros.fit_resample(X_train, y_train)
 
     mtype = cfg["model"]["type"]
-    model = build_model(cfg)
+
+    # Build preprocessing on training schema
+    pre = build_preprocess(X_tr)
+    # Wrap model into a single sklearn Pipeline
+
+    est = build_model(cfg)
+    pipe = Pipeline(steps=[("pre", pre), ("model", est)])
+
+    model = pipe
     calib = cfg.get("calibration", {}).get("method", None)
 
     if calib and mtype in TREE_TYPES:
@@ -90,7 +111,7 @@ def main(cfg_path: str):
     print(f"ROC-AUC: {auc:.4f}")
 
     Path("reports/figures").mkdir(parents=True, exist_ok=True)
-    out = X_val.copy()
+    out = pd.DataFrame(index=range(len(y_val)))
     out["y_true"] = y_val.values
     out["y_proba"] = proba
     out.to_csv("reports/val_predictions.csv", index=False)
@@ -101,8 +122,6 @@ def main(cfg_path: str):
 
     Path("artifacts").mkdir(exist_ok=True)
     joblib.dump(model, "artifacts/model.joblib")
-    with open("artifacts/columns.json", "w", encoding="utf-8") as f:
-        json.dump({"columns": X.columns.tolist()}, f)
 
     k_frac = cfg.get("thresholding", {}).get("k_fraction", 0.1)
     n = len(out)

@@ -1,17 +1,10 @@
 from __future__ import annotations
 
 import argparse
-import json
 
 import joblib
 import pandas as pd
 import yaml
-
-from src.features import basic_features
-
-
-def align_columns(X: pd.DataFrame, cols: list[str]) -> pd.DataFrame:
-    return X.reindex(columns=cols, fill_value=0)
 
 
 def main(input_path: str, output_path: str, cfg_path: str):
@@ -19,14 +12,9 @@ def main(input_path: str, output_path: str, cfg_path: str):
         cfg = yaml.safe_load(f)
 
     model = joblib.load("artifacts/model.joblib")
-    with open("artifacts/columns.json", encoding="utf-8") as f:
-        cols = json.load(f)["columns"]
-
     scoring = pd.read_csv(input_path)
     id_col = cfg["data"]["id_col"]
-    X = basic_features(scoring.drop(columns=[id_col], errors="ignore"))
-    X = align_columns(X, cols)
-
+    X = scoring.drop(columns=[id_col], errors="ignore")
     proba = model.predict_proba(X)[:, 1]
     out = scoring.copy()
     out["churn_proba"] = proba
