@@ -22,4 +22,17 @@ predict:
 	python -m src.inference --input data/scoring.csv --output reports/predictions.csv --config configs/base.yaml
 
 report:
+
+data_telco:
+	python scripts/get_telco.py data/train.csv
+
+train_telco: data_telco
+	python -m src.train --config configs/telco.yaml
+
+eval_telco:
+	python -m src.evaluate --config configs/telco.yaml
+
+report_telco:
+	python -m src.report_gen --config configs/telco.yaml
+
 	python -m src.report_gen --config configs/base.yaml
