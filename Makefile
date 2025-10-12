@@ -36,3 +36,11 @@ report_telco:
 	python -m src.report_gen --config configs/telco.yaml
 
 	python -m src.report_gen --config configs/base.yaml
+
+# --- Docker & Demo ---
+docker_build:
+	docker build -t churn-api:latest .
+docker_run:
+	docker compose up --build
+api_demo:
+	bash scripts/api_demo.sh
