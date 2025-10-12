@@ -88,3 +88,5 @@ curl -X POST http://127.0.0.1:8000/predict \
 |:------:|:------:|:-------:|:-----:|:--------:|:-------------:|
 | 0.8470 | 0.6468 | 0.4071 | 0.1332 | 2.987 | 0.679 |
 <!-- METRICS_END -->
+
+**Live report figures:** https://coldz1ra.github.io/churn-prediction-pipeline/
