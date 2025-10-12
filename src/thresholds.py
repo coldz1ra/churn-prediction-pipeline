@@ -1,12 +1,14 @@
 from __future__ import annotations
+
 import numpy as np
-import pandas as pd
+
 
 def select_by_k_fraction(y_proba, k_fraction: float):
     n = len(y_proba)
     k = max(1, int(n * k_fraction))
     thr = np.partition(y_proba, -k)[-k]
     return float(thr)
+
 
 def profit_curve(y_true, y_proba, cps: float = 2.0, k_grid=None):
     # Пример: считаем относительную выгоду при контакте top-k%

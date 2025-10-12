@@ -8,7 +8,10 @@ repos:
     hooks:
       - id: ruff
         args: [--fix]
-  - repo: https://github.com/pytest-dev/pytest
-    rev: 8.2.2
+  - repo: local
     hooks:
       - id: pytest
+        name: pytest
+        entry: pytest -q
+        language: system
+        pass_filenames: false

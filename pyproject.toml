@@ -4,9 +4,11 @@ target-version = ["py311"]
 
 [tool.ruff]
 line-length = 100
+exclude = ["notebooks/*", ".venv", ".git"]
+
+[tool.ruff.lint]
 select = ["E","F","I","UP","B","C4","SIM"]
-ignore = []
-exclude = ["/.venv"]
+ignore = ["UP006","UP007"]
 
 [tool.pytest.ini_options]
 addopts = "-q"

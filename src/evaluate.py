@@ -1,16 +1,19 @@
 from __future__ import annotations
+
 import argparse
 import json
-import yaml
-import pandas as pd
-import numpy as np
+
 import matplotlib.pyplot as plt
+import pandas as pd
+import yaml
 from sklearn.calibration import calibration_curve
+
 from src.metrics import compute_core_metrics, lift_at_k
-from src.thresholds import select_by_k_fraction, profit_curve
+from src.thresholds import profit_curve, select_by_k_fraction
+
 
 def main(cfg_path: str):
-    with open(cfg_path, "r", encoding="utf-8") as f:
+    with open(cfg_path, encoding="utf-8") as f:
         cfg = yaml.safe_load(f)
 
     df = pd.read_csv("reports/val_predictions.csv")
@@ -32,7 +35,7 @@ def main(cfg_path: str):
     prob_true, prob_pred = calibration_curve(y_true, y_proba, n_bins=10, strategy="quantile")
     plt.figure()
     plt.plot(prob_pred, prob_true, marker="o", linestyle="-", label="Model")
-    plt.plot([0,1],[0,1], linestyle="--", label="Perfect")
+    plt.plot([0, 1], [0, 1], linestyle="--", label="Perfect")
     plt.xlabel("Predicted probability")
     plt.ylabel("Observed frequency")
     plt.title("Calibration curve")
@@ -52,6 +55,7 @@ def main(cfg_path: str):
     plt.title("Profit Curve (proxy)")
     plt.tight_layout()
     plt.savefig("reports/figures/profit_curve.png")
+
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()

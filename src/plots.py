@@ -1,20 +1,28 @@
 from __future__ import annotations
-import numpy as np
+
 import matplotlib.pyplot as plt
-from sklearn.metrics import roc_curve, roc_auc_score, precision_recall_curve, average_precision_score
+import numpy as np
+from sklearn.metrics import (
+    average_precision_score,
+    precision_recall_curve,
+    roc_auc_score,
+    roc_curve,
+)
+
 
 def plot_roc(y_true, y_proba, path: str):
     fpr, tpr, _ = roc_curve(y_true, y_proba)
     auc = roc_auc_score(y_true, y_proba)
     plt.figure()
     plt.plot(fpr, tpr, label=f"ROC AUC = {auc:.3f}")
-    plt.plot([0,1],[0,1], linestyle="--")
+    plt.plot([0, 1], [0, 1], linestyle="--")
     plt.xlabel("FPR")
     plt.ylabel("TPR")
     plt.title("ROC Curve")
     plt.legend()
     plt.tight_layout()
     plt.savefig(path)
+
 
 def plot_pr(y_true, y_proba, path: str):
     precision, recall, _ = precision_recall_curve(y_true, y_proba)
@@ -27,6 +35,7 @@ def plot_pr(y_true, y_proba, path: str):
     plt.legend()
     plt.tight_layout()
     plt.savefig(path)
+
 
 def plot_lift(y_true, y_proba, path: str, bins: int = 10):
     order = np.argsort(-y_proba)

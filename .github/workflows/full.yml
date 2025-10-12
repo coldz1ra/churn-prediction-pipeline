@@ -1,18 +1,16 @@
-name: CI
+name: Full Train & Report
 on:
-  push:
-  pull_request:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 6 * * 1"
 jobs:
-  lint_test:
+  full:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: [ "3.9", "3.10", "3.11" ]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: '3.11'
       - uses: actions/cache@v4
         with:
           path: ~/.cache/pip
@@ -20,6 +18,13 @@ jobs:
           restore-keys: ${{ runner.os }}-pip-
       - run: python -m pip install -U pip
       - run: pip install -r requirements.txt
-      - run: pip install pre-commit
-      - run: pre-commit run --all-files || true
-      - run: pytest -q
+      - run: make data_telco
+      - run: make train_telco
+      - run: make eval_telco
+      - run: make report_telco
+      - uses: actions/upload-artifact@v4
+        with:
+          name: reports
+          path: |
+            reports/**
+            artifacts/**

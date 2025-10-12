@@ -1,12 +1,14 @@
 from __future__ import annotations
+
 import numpy as np
 import pandas as pd
 from sklearn.metrics import (
-    roc_auc_score,
     average_precision_score,
-    log_loss,
     brier_score_loss,
+    log_loss,
+    roc_auc_score,
 )
+
 
 def compute_core_metrics(y_true: pd.Series, y_proba: np.ndarray) -> dict:
     return {
@@ -15,6 +17,7 @@ def compute_core_metrics(y_true: pd.Series, y_proba: np.ndarray) -> dict:
         "logloss": float(log_loss(y_true, y_proba)),
         "brier": float(brier_score_loss(y_true, y_proba)),
     }
+
 
 def lift_at_k(y_true: pd.Series, y_proba: np.ndarray, k_frac: float = 0.1) -> float:
     n = len(y_true)

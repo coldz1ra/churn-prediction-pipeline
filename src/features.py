@@ -1,5 +1,7 @@
 from __future__ import annotations
+
 import pandas as pd
+
 
 def basic_features(df: pd.DataFrame) -> pd.DataFrame:
     # Простые агрегаты

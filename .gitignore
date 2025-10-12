@@ -21,3 +21,7 @@ reports/figures/*
 
 # OS
 .DS_Store
+
+!reports/churn_report.md
+!reports/metrics.json
+!reports/figures/*.png

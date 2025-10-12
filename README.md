@@ -1,4 +1,7 @@
 ![CI](https://github.com/coldz1ra/churn-prediction-pipeline/actions/workflows/ci.yml/badge.svg)
+![Python](https://img.shields.io/badge/Python-3.11-blue)
+![License](https://img.shields.io/badge/License-MIT-green)
+![CI](https://github.com/coldz1ra/churn-prediction-pipeline/actions/workflows/ci.yml/badge.svg)
 # Customer Churn Prediction
 
 **Resume-grade** end-to-end ML pipeline to predict customer churn probability and optimize retention actions under a budget.
@@ -62,3 +65,17 @@ POST /predict
 
 ## Stack
 Python, scikit-learn, LightGBM, XGBoost, SHAP, Imbalanced-Learn, FastAPI, GitHub Actions, pytest.
+
+## Dataset
+Public: Telco Customer Churn (IBM). Use `make data_telco` to download.
+
+## Metrics (Telco)
+
+| ROC-AUC | PR-AUC | Lift@10
+## API Example
+
+```bash
+curl -X POST http://127.0.0.1:8000/predict \
+ -H "Content-Type: application/json" \
+ -d '{"data":[{"revenue":120,"active_days":12,"tenure_days":180,"contract_type":"Month-to-month"}]}'
+```

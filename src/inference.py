@@ -1,21 +1,26 @@
 from __future__ import annotations
+
 import argparse
-import yaml
-import pandas as pd
-import numpy as np
 import json
+
 import joblib
+import pandas as pd
+import yaml
+
 from src.features import basic_features
+
 
 def align_columns(X: pd.DataFrame, cols: list[str]) -> pd.DataFrame:
     return X.reindex(columns=cols, fill_value=0)
 
+
 def main(input_path: str, output_path: str, cfg_path: str):
-    with open(cfg_path, "r", encoding="utf-8") as f:
+    with open(cfg_path, encoding="utf-8") as f:
         cfg = yaml.safe_load(f)
 
     model = joblib.load("artifacts/model.joblib")
-    cols = json.load(open("artifacts/columns.json"))["columns"]
+    with open("artifacts/columns.json", encoding="utf-8") as f:
+        cols = json.load(f)["columns"]
 
     scoring = pd.read_csv(input_path)
     id_col = cfg["data"]["id_col"]
@@ -27,6 +32,7 @@ def main(input_path: str, output_path: str, cfg_path: str):
     out["churn_proba"] = proba
     out.to_csv(output_path, index=False)
     print(f"Saved predictions to {output_path}")
+
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
