@@ -1,92 +1,158 @@
-![CI](https://github.com/coldz1ra/churn-prediction-pipeline/actions/workflows/ci.yml/badge.svg)
-![Python](https://img.shields.io/badge/Python-3.11-blue)
-![License](https://img.shields.io/badge/License-MIT-green)
-![CI](https://github.com/coldz1ra/churn-prediction-pipeline/actions/workflows/ci.yml/badge.svg)
-# Customer Churn Prediction
+# 🧠 Churn Prediction Pipeline
 
-**Resume-grade** end-to-end ML pipeline to predict customer churn probability and optimize retention actions under a budget.
+End-to-end machine learning pipeline for **customer churn prediction**, built with a focus on **production readiness**, **reproducibility**, and **API deployment**.
 
-## Highlights
-- 📦 Clean, modular structure with `src/`, `configs/`, `tests/`, `reports/`, `artifacts/`
-- 🤖 Models: Logistic Regression, LightGBM, XGBoost (+ early stopping)
-- 🎯 Imbalanced learning, **probability calibration**, **threshold@k**, **lift@k**, **profit curve**
-- 🔍 Explainability: **SHAP** summary & top features
-- 🧪 CI/CD: GitHub Actions (+ pip cache), pre-commit (black, ruff), pytest
-- 📊 Auto-report: `reports/churn_report.md` with metrics, figures, business insights
-- 🌐 Optional REST API (FastAPI) + Dockerfile
+[**Live Showcase (GitHub Pages)**](https://coldz1ra.github.io/churn-prediction-pipeline/)
 
-## Quickstart
-```bash
+---
+
+## 🚀 Project Overview
+
+This project simulates a real-world DS workflow — from raw data to serving model predictions through a FastAPI microservice:
+
+1. Data ingestion
+2. Preprocessing via ColumnTransformer
+3. Model training (LightGBM) with probability calibration
+4. Evaluation with business-oriented metrics
+5. Reporting (Markdown + plots)
+6. Deployment via FastAPI `/predict`
+7. Publishing results via GitHub Pages
+
+---
+
+## 🧩 Architecture
+
+\`\`\`
+churn-prediction-pipeline/
+├── src/
+│   ├── app.py            # FastAPI app for serving predictions
+│   ├── train.py          # Model training script
+│   ├── evaluate.py       # Validation metrics computation
+│   ├── inference.py      # Batch inference script
+│   ├── preprocess.py     # ColumnTransformer feature pipeline
+│   └── report_gen.py     # Markdown report generator
+├── configs/
+│   └── telco.yaml        # Main training configuration
+├── scripts/
+│   ├── get_telco.py      # Dataset downloader
+│   ├── api_demo.sh       # Example API request
+│   └── update_docs.py    # Sync reports → docs for Pages
+├── artifacts/            # Trained model
+├── reports/              # Validation results and figures
+├── docs/                 # Published on GitHub Pages
+├── Makefile
+├── requirements.txt
+└── README.md
+\`\`\`
+
+---
+
+## 📊 Dataset
+
+Source: Telco Customer Churn (IBM/Kaggle)  
+Rows: ~7k  
+Features: mixed categorical + numerical  
+Target: \`Churn\` (binary)
+
+---
+
+## ⚙️ ML Pipeline
+
+| Stage | Description |
+|------|-------------|
+| Preprocessing | OneHotEncoder for categoricals, SimpleImputer, StandardScaler for numericals |
+| Model | LightGBMClassifier wrapped with CalibratedClassifierCV |
+| Evaluation | ROC-AUC, PR-AUC, LogLoss, Brier, Lift@K; exports top-K contacts |
+| Reporting | Markdown report with ROC/PR/Lift/Calibration/Profit plots |
+| Serving | FastAPI \`/predict\` returns calibrated churn probabilities |
+
+---
+
+## 🧪 API Usage
+
+Start API:
+\`\`\`bash
+uvicorn src.app:app --host 0.0.0.0 --port 8000 --reload
+\`\`\`
+
+Example request:
+\`\`\`bash
+curl -X POST "http://127.0.0.1:8000/predict" \
+  -H "Content-Type: application/json" \
+  -d '{
+        "data":[
+          {
+            "gender":"Male",
+            "SeniorCitizen":0,
+            "Partner":"Yes",
+            "Dependents":"No",
+            "tenure":5,
+            "PhoneService":"Yes",
+            "InternetService":"Fiber optic",
+            "Contract":"Month-to-month",
+            "PaperlessBilling":"Yes",
+            "PaymentMethod":"Electronic check",
+            "MonthlyCharges":79.35,
+            "TotalCharges":356.65
+          }
+        ]
+      }'
+\`\`\`
+
+---
+
+## 📈 Model Performance
+
+Typical validation (Telco):
+- ROC-AUC ≈ 0.82
+- PR-AUC ≈ 0.60
+- Lift@10% ≈ 2.6
+
+Plots:
+- ROC Curve
+- PR Curve
+- Lift Curve
+- Calibration Curve
+- Profit Curve
+
+Full report is mirrored to GitHub Pages.
+
+---
+
+## 🧰 Tech Stack
+
+- ML: LightGBM, scikit-learn, pandas, numpy
+- API: FastAPI, Uvicorn
+- Automation: Makefile, pre-commit, pytest
+- CI/CD: GitHub Actions, GitHub Pages
+- Viz: matplotlib
+
+---
+
+## 🧑‍💻 Local Development
+
+\`\`\`bash
+git clone https://github.com/coldz1ra/churn-prediction-pipeline.git
+cd churn-prediction-pipeline
 python3 -m venv .venv && source .venv/bin/activate
-python -m pip install -U pip
-make setup
-pre-commit install
-make test
-make train            # trains and saves artifacts
-make eval             # metrics + curves
-make report           # generates reports/churn_report.md
-make predict          # scores data/scoring.csv -> reports/predictions.csv
-```
-
-## Configs
-Use one of:
-- `configs/base.yaml` (LogReg baseline)
-- `configs/model_xgb.yaml` (XGBoost + isotonic calibration)
-- `configs/model_lgbm.yaml` (LightGBM + isotonic calibration)
-
-Key business params:
-```yaml
-thresholding:
-  k_fraction: 0.10   # top-10% contact rate
-  cps: 2.0           # cost per save (per contacted customer)
-  ltv: 100.0         # expected lifetime value per saved customer
-```
-
-## API (optional)
-After `make train` (artifacts created), run:
-```bash
+pip install -r requirements.txt
+make data_telco
 uvicorn src.app:app --host 0.0.0.0 --port 8000
-# or
-docker build -t churn-api .
-docker run -p 8000:8000 churn-api
-```
-Request example:
-```json
-POST /predict
-{
-  "data": [
-    {"revenue": 120, "active_days": 12, "tenure_days": 180, "contract_type": "Month-to-month"}
-  ]
-}
-```
+bash scripts/api_demo.sh
+\`\`\`
 
-## Figures
-- ROC, PR, Calibration, Lift, Profit; **SHAP summary** for tree models.
+---
 
-## Stack
-Python, scikit-learn, LightGBM, XGBoost, SHAP, Imbalanced-Learn, FastAPI, GitHub Actions, pytest.
+## 📦 Future Improvements
 
-## Dataset
-Public: Telco Customer Churn (IBM). Use `make data_telco` to download.
+- Docker image and compose
+- Scheduled retraining via Actions
+- SHAP explainability in the report
+- EDA notebook
+- Extended API tests and schema
 
-## Metrics (Telco)
+---
 
-| ROC-AUC | PR-AUC | Lift@10
-## API Example
+## 🏁 Author
 
-```bash
-curl -X POST http://127.0.0.1:8000/predict \
- -H "Content-Type: application/json" \
- -d '{"data":[{"revenue":120,"active_days":12,"tenure_days":180,"contract_type":"Month-to-month"}]}'
-```
-
-
-<!-- METRICS_START -->
-## Metrics (Telco)
-
-| ROC-AUC | PR-AUC | LogLoss | Brier | Lift@10% | Threshold@10% |
-|:------:|:------:|:-------:|:-----:|:--------:|:-------------:|
-| 0.8470 | 0.6468 | 0.4071 | 0.1332 | 2.987 | 0.679 |
-<!-- METRICS_END -->
-
-**Live report figures:** https://coldz1ra.github.io/churn-prediction-pipeline/
+[@coldz1ra](https://github.com/coldz1ra) — Data Science & MLOps
